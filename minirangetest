@@ -1,18 +1,31 @@
-services:
+version: '3.8'
 
-  # WebGoat - A vulnerable web application for security training.
+services:
+  # WebGoat
   webgoat:
     container_name: webgoat
-    image: webgoat/webgoat-8.0
+    image: webgoat/webgoat:latest
     ports:
-      - "8080:8080"  # Access WebGoat on http://127.0.0.1:8080
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9090:9090"
     environment:
-      - "JAVA_OPTS=-Dwebgoat.configurations=localhost"
-    networks:
-      - app-network
+      # If TZ is not set, fallback to /etc/timezone or set UTC as default
+      - TZ=${TZ:-$(cat /etc/timezone 2>/dev/null || echo "UTC")}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 
-  # Juice Shop - A vulnerable web application for security training.
+
+  # Juice Shop
   juice-shop:
     container_name: juice-shop
     image: bkimminich/juice-shop
